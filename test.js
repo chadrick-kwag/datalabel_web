@@ -19,8 +19,24 @@ var SELECTED_RECT_STROKE_COLOR="#1bfc07"
 var DEFAULT_RECT_STROKE_COLOR = "#ff1616"
 
 
+var current_img_index=0;
+var dataset_id=1;
+var total_image_number=0;
+
+
+var SERVER_BASE_ADDR="http://13.124.175.119:4001"
+
+
 
 window.onload = function(){
+	// communicate with server
+
+
+	// get total_image number first
+	fetch_total_image_number()
+
+
+
 	canvas0 = document.getElementById("canvas0");
 	canvas1 = document.getElementById("canvas1");
 	canvas2 = document.getElementById("canvas2");
@@ -31,6 +47,12 @@ window.onload = function(){
 	ctx2 = canvas2.getContext('2d');
 	label_dropdown = document.getElementById("labeldropdown")
 	var img = document.getElementById('bgimage');
+	img.onload=function(){
+		
+	}
+	img.src=SERVER_BASE_ADDR+"/web/"+dataset_id+"/img/"+current_img_index
+
+
 	console.log(img.width, img.height);
 
 	canvas0.width= img.width;
@@ -347,4 +369,19 @@ function toggle_push_to_selected_rects(request_index){
 		selected_rects_index_arr.push(request_index)
 	}
 
+}
+
+
+function fetch_total_image_number(){
+	var xhttp = new XMLHttpRequest()
+	xhttp.onreadystatechange = function(){
+		if(this.readyState ==4 && this.status==200){
+			console.log("response:",this.responseText)
+		}
+	}
+	
+	var sendaddr = SERVER_BASE_ADDR+"/web/"+dataset_id+"/info"
+	console.log("sending to ",sendaddr)
+	xhttp.open("POST", sendaddr)
+	xhttp.send()
 }
