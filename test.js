@@ -1,7 +1,6 @@
 var canvas0, canvas1, canvas2;
 var canvas_wrapper
-var showtxt;
-var showtxtcontainerdiv;
+
 var lastX, lastY;
 var ctx0, ctx1, ctx2;
 var dragmode = false;
@@ -9,6 +8,8 @@ var rect_temp_finished = false;
 var label_dropdown;
 var baseimg
 var index_label
+var savebtn
+var dsinfo_label
 
 var temp_rect;
 
@@ -27,10 +28,14 @@ var dataset_id = 1;
 var total_image_number = 0;
 
 
+
+
 var SERVER_BASE_ADDR = "http://13.124.175.119:4001"
 
 
-var user_label_result={}
+var user_label_result = {}
+
+
 
 
 
@@ -46,13 +51,22 @@ window.onload = function() {
     canvas0 = document.getElementById("canvas0")
     canvas1 = document.getElementById("canvas1")
     canvas2 = document.getElementById("canvas2")
-    showtxt = document.getElementById("showtxt")
+
+    savebtn = document.getElementById("savebutton")
+
     index_label = document.getElementById("image_index")
-    showtxtcontainerdiv = document.getElementById("showtxtcontainer")
+    dsinfo_label = document.getElementById("dsinfo")
+
     ctx0 = canvas0.getContext('2d')
     ctx1 = canvas1.getContext('2d')
     ctx2 = canvas2.getContext('2d')
     label_dropdown = document.getElementById("labeldropdown")
+
+
+    dsinfo_label.innerHTML = "dataset id = "+dataset_id
+
+
+
     baseimg = document.getElementById('bgimage')
     baseimg.onload = function() {
         canvas0.width = baseimg.width
@@ -64,7 +78,7 @@ window.onload = function() {
         canvas2.width = baseimg.width
         canvas2.height = baseimg.height
 
-        
+
 
         ctx0.drawImage(baseimg, 0, 0)
 
@@ -74,8 +88,12 @@ window.onload = function() {
         canvas_wrapper.style.width = canvas0.width
 
         update_index_label()
+        finished_rects = []
 
     }
+
+
+
     baseimg.src = SERVER_BASE_ADDR + "/web/" + dataset_id + "/img/" + current_img_index
 
 
@@ -92,7 +110,7 @@ window.onload = function() {
         lastY = evt.offsetY || (evt.pageY - canvas2.offsetTop);
         // console.log("lastX:",lastX," lastY:",lastY);
 
-        
+
 
     }, false);
 
@@ -132,7 +150,7 @@ window.onload = function() {
             // console.log("inside dragmode true")
             dragmode = false;
             rect_temp_finished = true;
-            showtxt.style.display = "inline";
+
 
             show_label_dropdown(evt.offsetX, evt.offsetY)
         } else {
@@ -166,56 +184,118 @@ window.onload = function() {
         }
 
     });
+
+
+    savebtn.onclick = function() {
+        console.log("savebtn clicked")
+
+        update_user_label_result()
+
+        var xhttp = new XMLHttpRequest()
+        xhttp.onreadystatechange = function() {
+            if (this.readyState == 4 && this.status == 200) {
+                console.log("upload success")
+                
+            }
+            else{
+            	console.log("upload error",this.readyState,this.status)
+            }
+        }
+
+        var sendaddr = SERVER_BASE_ADDR + "/web/upload"
+        console.log("sending to ", sendaddr)
+        xhttp.open("POST", sendaddr)
+        xhttp.setRequestHeader('Content-Type', 'application/json');
+
+        
+        var sendjson = {}
+        sendjson.dataset_id = dataset_id
+        sendjson.data = user_label_result
+        console.log("sending",sendjson)
+        xhttp.send(JSON.stringify(sendjson))
+    }
+
+
 }
 
-// window.addEventListener("keypress", function(evt) {
 
 
-//     if (evt.key == "Enter") {
 
-//         if (rect_temp_finished) {
-//             rect_temp_finished = false;
-//             draw_temp_rect();
-//             erase_temp_rect()
-//             add_rect_to_savedlist();
-//             hide_label_dropdown()
-//         }
-//     }
-    
-// });
 
 window.addEventListener("keydown", function(evt) {
 
-	if(evt.key=="PageUp"){
-		evt.preventDefault()
-    	console.log("pageup detected")
-    	current_img_index++
-    	reload_imgsrc()
-	}
-	else if(evt.key=="PageDown"){
-		evt.preventDefault()
-    	console.log("pageup detected")
-    	current_img_index--
-    	if(current_img_index<0){
-    		// this is invalid
-    		current_img_index=0
-    		// do nothing.
+	console.log(evt)
 
-    	}
-    	else{
-    		reload_imgsrc()	
-    	}
-    	
-	}
-	else if(evt.key=="Enter"){
-		if (rect_temp_finished) {
+    if (evt.key == "PageUp") {
+        evt.preventDefault()
+
+        update_user_label_result()
+
+        current_img_index++
+        if (current_img_index >= total_image_number) {
+            current_img_index = total_image_number
+            // and do nothing.
+        } else {
+            reload_imgsrc()
+        }
+
+
+    } else if (evt.key == "PageDown") {
+        evt.preventDefault()
+
+        update_user_label_result()
+        current_img_index--
+        if (current_img_index < 0) {
+            // this is invalid
+            current_img_index = 0
+            // do nothing.
+
+        } else {
+            reload_imgsrc()
+        }
+
+    } else if (evt.key == "Enter") {
+        if (rect_temp_finished) {
             rect_temp_finished = false;
             draw_temp_rect();
             erase_temp_rect()
             add_rect_to_savedlist();
             hide_label_dropdown()
         }
-	}
+    }
+    else if(evt.key=='u'){
+    	savebtn.click()
+    }
+    else if (evt.key=="Delete"){
+    	// if there are any selected rects, remove them from finished_rect list
+    	// and then redraw the whole finished rects
+    	
+    	// copy finished_rect that are not included in selected_rects
+    	var temp_finished_rect_arr=[]
+    	console.log("selected_rects_index_arr",selected_rects_index_arr)
+    	console.log("finished_rects",finished_rects)
+    	for(i=0;i<finished_rects.length;i++){
+    		if(!selected_rects_index_arr.includes(i)){
+    			console.log(i,"is not included in selected_rects")
+    			temp_finished_rect_arr.push(finished_rects[i])
+    		}
+    		else{
+    			console.log(i,"is included in selected rects")
+    		}
+    	}
+
+    	console.log("temparr",temp_finished_rect_arr)
+
+    	// clear selected_rects
+    	selected_rects_index_arr=[]
+    	// set the finished_rects to the temparr
+    	finished_rects=temp_finished_rect_arr
+
+    	console.log("after finished rects",finished_rects)
+
+    	//redraw
+    	redraw_all_finished_rects()
+    }
 
 })
 
@@ -224,7 +304,7 @@ window.addEventListener("keydown", function(evt) {
 
 function draw_temp_rect() {
 
-	draw_unselected_rect([temp_rect[0], temp_rect[1], temp_rect[2], temp_rect[3]])
+    draw_unselected_rect([temp_rect[0], temp_rect[1], temp_rect[2], temp_rect[3]])
 
     // ctx1.beginPath();
     // ctx1.rect(temp_rect[0], temp_rect[1], temp_rect[2], temp_rect[3]);
@@ -363,7 +443,6 @@ function show_label_dropdown(x, y) {
     label_dropdown.style.display = "inline"
     labeldropdown.style.left = x
     labeldropdown.style.top = y
-
 }
 
 function hide_label_dropdown() {
@@ -430,12 +509,20 @@ function fetch_total_image_number() {
     xhttp.send()
 }
 
-function reload_imgsrc(){
-	baseimg.src = SERVER_BASE_ADDR + "/web/" + dataset_id + "/img/" + current_img_index
+function reload_imgsrc() {
+    baseimg.src = SERVER_BASE_ADDR + "/web/" + dataset_id + "/img/" + current_img_index
 }
 
-function update_index_label(){
-	console.log("inside update_index_label",current_img_index,total_image_number)
 
-	index_label.innerHTML = current_img_index + "/" + total_image_number
+function update_index_label() {
+    console.log("inside update_index_label", current_img_index, total_image_number)
+
+    index_label.innerHTML = current_img_index + "/" + total_image_number
+}
+
+function update_user_label_result() {
+    // insert to the user_label_result
+    user_label_result[current_img_index] = finished_rects
+
+    console.log(user_label_result)
 }
