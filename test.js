@@ -1,4 +1,5 @@
 var canvas0, canvas1, canvas2;
+var canvas_wrapper
 var showtxt;
 var showtxtcontainerdiv;
 var lastX, lastY;
@@ -7,6 +8,7 @@ var dragmode = false;
 var rect_temp_finished = false;
 var label_dropdown;
 var baseimg
+var index_label
 
 var temp_rect;
 
@@ -28,6 +30,9 @@ var total_image_number = 0;
 var SERVER_BASE_ADDR = "http://13.124.175.119:4001"
 
 
+var user_label_result={}
+
+
 
 window.onload = function() {
     // communicate with server
@@ -37,40 +42,46 @@ window.onload = function() {
     fetch_total_image_number()
 
 
-
-    canvas0 = document.getElementById("canvas0");
-    canvas1 = document.getElementById("canvas1");
-    canvas2 = document.getElementById("canvas2");
-    showtxt = document.getElementById("showtxt");
-    showtxtcontainerdiv = document.getElementById("showtxtcontainer");
-    ctx0 = canvas0.getContext('2d');
-    ctx1 = canvas1.getContext('2d');
-    ctx2 = canvas2.getContext('2d');
+    canvas_wrapper = document.getElementById("canvas_wrapper")
+    canvas0 = document.getElementById("canvas0")
+    canvas1 = document.getElementById("canvas1")
+    canvas2 = document.getElementById("canvas2")
+    showtxt = document.getElementById("showtxt")
+    index_label = document.getElementById("image_index")
+    showtxtcontainerdiv = document.getElementById("showtxtcontainer")
+    ctx0 = canvas0.getContext('2d')
+    ctx1 = canvas1.getContext('2d')
+    ctx2 = canvas2.getContext('2d')
     label_dropdown = document.getElementById("labeldropdown")
-    baseimg = document.getElementById('bgimage');
+    baseimg = document.getElementById('bgimage')
     baseimg.onload = function() {
-        canvas0.width = baseimg.width;
-        canvas0.height = baseimg.height;
+        canvas0.width = baseimg.width
+        canvas0.height = baseimg.height
 
-        canvas1.width = baseimg.width;
-        canvas1.height = baseimg.height;
+        canvas1.width = baseimg.width
+        canvas1.height = baseimg.height
 
-        canvas2.width = baseimg.width;
-        canvas2.height = baseimg.height;
+        canvas2.width = baseimg.width
+        canvas2.height = baseimg.height
 
-        showtxtcontainerdiv.style.marginTop = baseimg.height + 100;
+        
 
-        ctx0.drawImage(baseimg, 0, 0);
+        ctx0.drawImage(baseimg, 0, 0)
 
-        console.log(baseimg.width, baseimg.height);
+        console.log(baseimg.width, baseimg.height)
+
+        canvas_wrapper.style.minHeight = canvas0.height
+        canvas_wrapper.style.width = canvas0.width
+
+        update_index_label()
 
     }
     baseimg.src = SERVER_BASE_ADDR + "/web/" + dataset_id + "/img/" + current_img_index
 
 
 
-    ctx1.strokeStyle = DEFAULT_RECT_STROKE_COLOR;
-    ctx1.lineWidth = 5;
+    ctx1.strokeStyle = DEFAULT_RECT_STROKE_COLOR
+    ctx1.lineWidth = 10
 
 
     canvas2.addEventListener('mousedown', function(evt) {
@@ -81,7 +92,7 @@ window.onload = function() {
         lastY = evt.offsetY || (evt.pageY - canvas2.offsetTop);
         // console.log("lastX:",lastX," lastY:",lastY);
 
-        showtxt.style.display = 'none';
+        
 
     }, false);
 
@@ -157,21 +168,21 @@ window.onload = function() {
     });
 }
 
-window.addEventListener("keypress", function(evt) {
+// window.addEventListener("keypress", function(evt) {
 
 
-    if (evt.key == "Enter") {
+//     if (evt.key == "Enter") {
 
-        if (rect_temp_finished) {
-            rect_temp_finished = false;
-            draw_temp_rect();
-            erase_temp_rect()
-            add_rect_to_savedlist();
-            hide_label_dropdown()
-        }
-    }
+//         if (rect_temp_finished) {
+//             rect_temp_finished = false;
+//             draw_temp_rect();
+//             erase_temp_rect()
+//             add_rect_to_savedlist();
+//             hide_label_dropdown()
+//         }
+//     }
     
-});
+// });
 
 window.addEventListener("keydown", function(evt) {
 
@@ -196,6 +207,15 @@ window.addEventListener("keydown", function(evt) {
     	}
     	
 	}
+	else if(evt.key=="Enter"){
+		if (rect_temp_finished) {
+            rect_temp_finished = false;
+            draw_temp_rect();
+            erase_temp_rect()
+            add_rect_to_savedlist();
+            hide_label_dropdown()
+        }
+	}
 
 })
 
@@ -203,10 +223,13 @@ window.addEventListener("keydown", function(evt) {
 
 
 function draw_temp_rect() {
-    ctx1.beginPath();
-    ctx1.rect(temp_rect[0], temp_rect[1], temp_rect[2], temp_rect[3]);
-    ctx1.stroke();
-    ctx1.closePath();
+
+	draw_unselected_rect([temp_rect[0], temp_rect[1], temp_rect[2], temp_rect[3]])
+
+    // ctx1.beginPath();
+    // ctx1.rect(temp_rect[0], temp_rect[1], temp_rect[2], temp_rect[3]);
+    // ctx1.stroke();
+    // ctx1.closePath();
 
 }
 
@@ -358,6 +381,7 @@ function clear_all_selected() {
 function draw_unselected_rect(rectparam) {
 
     ctx1.strokeStyle = DEFAULT_RECT_STROKE_COLOR;
+    ctx1.lineWidth = 5
     ctx1.beginPath()
     ctx1.rect(rectparam[0], rectparam[1], rectparam[2], rectparam[3]);
     ctx1.stroke();
@@ -368,6 +392,7 @@ function draw_unselected_rect(rectparam) {
 
 function draw_selected_rect(rectparam) {
     ctx1.strokeStyle = SELECTED_RECT_STROKE_COLOR
+    ctx1.lineWidth = 5
     ctx1.beginPath()
     ctx1.rect(rectparam[0], rectparam[1], rectparam[2], rectparam[3]);
     ctx1.stroke();
@@ -394,7 +419,8 @@ function fetch_total_image_number() {
     var xhttp = new XMLHttpRequest()
     xhttp.onreadystatechange = function() {
         if (this.readyState == 4 && this.status == 200) {
-            console.log("response:", this.responseText)
+            console.log("response:", JSON.parse(this.responseText))
+            total_image_number = JSON.parse(this.responseText).number_of_images
         }
     }
 
@@ -406,4 +432,10 @@ function fetch_total_image_number() {
 
 function reload_imgsrc(){
 	baseimg.src = SERVER_BASE_ADDR + "/web/" + dataset_id + "/img/" + current_img_index
+}
+
+function update_index_label(){
+	console.log("inside update_index_label",current_img_index,total_image_number)
+
+	index_label.innerHTML = current_img_index + "/" + total_image_number
 }

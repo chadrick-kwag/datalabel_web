@@ -1,23 +1,30 @@
 <html>
+
 <head>
-	<script src="test.js"></script>
-	</head>
-	<body>
-		<canvas id="canvas0" style="position: absolute; left:0;top:0;z-index=0;"></canvas>	
-		<canvas id="canvas1" style="position: absolute; left:0;top:0;z-index=1;"></canvas>
-		<canvas id="canvas2" style="position: absolute;left:0;top:0;z-index=2;"></canvas>
-		<select id="labeldropdown" style="position: absolute;display:none;">
-			<option value="car">car</option>
-			<option value="bus">bus</option>
-		</select>
-	
-	<!-- <img src="testbackground.jpg" id="bgimage" style="display:none;"/> -->
-	<!-- <img src="http://13.124.175.119:4001/web/1/img/3" id="bgimage" style="display:none;"/> -->
-	<img id="bgimage" style="display:none;"/>
-	
-	
-	<div id="showtxtcontainer">
-		<p id="showtxt">press enter to confirm. click outside selected box to cancel</p>
+    <script src="test.js"></script>
+</head>
+
+<body>
+	<div id="status_bar">
+		<label id="image_index" ></label>
+		<button id="savebutton" style="float:right;" value="save">save</button>
+
+		
+
 	</div>
-	</body>
+    <div id="canvas_wrapper" style="position:relative;">
+        <canvas id="canvas0" style="position: absolute; left:0;top:0;z-index=0;"></canvas>
+        <canvas id="canvas1" style="position: absolute; left:0;top:0;z-index=1;"></canvas>
+        <canvas id="canvas2" style="position: absolute;left:0;top:0;z-index=2;"></canvas>
+        <select id="labeldropdown" style="position: absolute;display:none;">
+            <option value="car">car</option>
+            <option value="bus">bus</option>
+        </select>
+    </div>
+    <!-- <img src="testbackground.jpg" id="bgimage" style="display:none;"/> -->
+    <!-- <img src="http://13.124.175.119:4001/web/1/img/3" id="bgimage" style="display:none;"/> -->
+    <img id="bgimage" style="display:none;" />
+    
+</body>
+
 </html>
